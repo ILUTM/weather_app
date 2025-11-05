@@ -1,0 +1,135 @@
+[tool.poetry]
+name = "weather-app"
+version = "0.1.0"
+description = ""
+authors = ["Yauheni <henievich@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.2.7"
+psycopg2-binary = "^2.9.11"
+requests = "^2.32.5"
+python-dotenv = "^1.2.1"
+djangorestframework = "^3.16.1"
+django-cors-headers = "^4.9.0"
+django-cities-light = "^3.10.2"
+django-stubs = "^5.2.7"
+drf-spectacular = "^0.29.0"
+django-filter = "^25.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.18.2"
+pytest = "^8.4.2"
+pytest-django = "^4.11.1"
+pytest-cov = "^7.0.0"
+ruff = "^0.14.3"
+types-requests = "^2.32.4.20250913"
+django-stubs = "^5.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ============ Ruff Configuration ============
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "migrations",
+    "staticfiles",
+    "manage.py",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "DJ",  # django-specific rules
+]
+
+ignore = [
+    # Formatter conflicts
+    "D203",   # One blank line before class docstring
+    "D212",   # Multi-line docstring summary should be on the first line
+    "COM812", # Missing trailing comma
+    "ISC001", # Single line implicit string concatenation
+    
+    # Type annotations
+    "ANN001", # Missing type annotation for self in method
+    "ANN002", # Missing type annotation for *args
+    "ANN003", # Missing type annotation for **kwargs
+    "ANN101", # Missing Self/cls annotations
+    "ANN204", # Missing return type annotation for __init__
+    
+    # General
+    "RUF012", # Mutable class attributes should be annotated with ClassVar
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "EM101",  # Exception must not use a string literal
+    "DTZ011", # Missing timezone info
+    "ARG002", # Unused method argument (Django views need 'request')
+    
+    # Docstrings
+    "D100",   # Missing docstring in public module
+    "D101",   # Missing docstring in public class
+    "D102",   # Missing docstring in public method
+    "D103",   # Missing docstring in public function
+    "D104",   # Missing docstring in public package
+    "D106",   # Missing docstring in public nested class
+    "D107",   # Missing docstring in __init__
+]
+
+unfixable = [
+    "F841", # Prevents ruff deleting "unused" variables
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["weather", "core", "config"]
+
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["mypy_django_plugin.main"]
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+allow_untyped_decorators = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "*.migrations.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "*.tests.*"
+disallow_untyped_defs = false
+
+[tool.django-stubs]
+django_settings_module = "app.settings"
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--reuse-db",
+    "--cov=weather",
+    "--cov=core",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
