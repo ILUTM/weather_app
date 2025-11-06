@@ -45,7 +45,7 @@ class WeatherService:
         if city:
             return city
 
-        city = City.objects.filter(search_names__icontains=city_name.lower()).first()
+        city = City.objects.filter(search_names__icontains=city_name).first()
         return city
 
     @classmethod
@@ -65,9 +65,7 @@ class WeatherService:
         """
         try:
             base_url = settings.WEATHER_API_BASE_URL
-
             units = cls.UNITS_MAP.get(cast(TemperatureChoices, temperature_unit), "standard")
-
             params = cls._build_api_params(latitude, longitude, units)
 
             response = requests.get(base_url, params=params, timeout=10)
