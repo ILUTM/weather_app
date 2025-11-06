@@ -65,6 +65,17 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "App",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SECURITY": [{"Authentication": []}],
+}
+
+
 WSGI_APPLICATION = "app.wsgi.application"
 
 
@@ -108,7 +119,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]
-CITIES_LIGHT_INCLUDE_COUNTRIES = ["US", "GB", "CA", "AU"]
+CITIES_LIGHT_INCLUDE_COUNTRIES = ["US", "BY"]
 CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL", "PPLA", "PPLA2", "PPLA3", "PPLA4", "PPLC"]
 CITIE_LIGHT_INDEX_SEARCH_NAMES = True
 
@@ -136,12 +147,12 @@ LOGGING = {
         "cities_light": {
             "handlers": ["console"],
             "propagate": True,
-            "level": "DEBUG",
+            "level": "INFO",
         },
         "django": {
             "handlers": ["console"],
             "propagate": True,
-            "level": "DEBUG",
+            "level": "INFO",
         },
         "weather": {
             "handlers": ["console"],
