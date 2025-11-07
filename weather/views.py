@@ -1,12 +1,15 @@
 from typing import cast
 
-from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
-from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
+from rest_framework import generics, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.pagination import WeatherQueryPagination
 from weather.models import TemperatureChoices, WeatherQuery
+from weather.filters import WeatherQueryFilter
 from weather.serializers import (
     WeatherQueryHistorySerializer,
     WeatherQuerySerializer,
@@ -83,44 +86,111 @@ class WeatherView(APIView):
         return cast(str | None, request.META.get("REMOTE_ADDR"))
 
 
-class WeatherQueryHistoryView(APIView):
+class WeatherQueryHistoryView(generics.ListAPIView):
+    queryset = WeatherQuery.objects.select_related("weather_snapshot").all()
+    serializer_class = WeatherQueryHistorySerializer
+    filterset_class = WeatherQueryFilter
+    filter_backends = (DjangoFilterBackend, )
+    pagination_class = WeatherQueryPagination
+    
     @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='page',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description='Page number',
+                default=1
+            ),
+            OpenApiParameter(
+                name='page_size',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description='Number of results per page (max 100)',
+                default=10
+            ),
+            OpenApiParameter(
+                name='city',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Filter by city name (case-insensitive substring match)',
+                required=False
+            ),
+            OpenApiParameter(
+                name='date_from',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Filter queries from this date/time (ISO 8601 format)',
+                required=False,
+                examples=[
+                    OpenApiExample(
+                        'Date from example',
+                        value='2025-11-01T00:00:00Z'
+                    )
+                ]
+            ),
+            OpenApiParameter(
+                name='date_to',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Filter queries up to this date/time (ISO 8601 format)',
+                required=False,
+                examples=[
+                    OpenApiExample(
+                        'Date to example',
+                        value='2025-11-30T23:59:59Z'
+                    )
+                ]
+            ),
+        ],
         responses={
             200: OpenApiResponse(
                 response=WeatherQueryHistorySerializer(many=True),
-                description="List of weather queries",
+                description="Paginated list of weather queries",
                 examples=[
                     OpenApiExample(
                         "Query History Response",
-                        value=[
-                            {
-                                "id": 1,
-                                "city_name": "Horad Zhodzina",
-                                "temperature": 15.5,
-                                "weather_description": "clear sky",
-                                "temperature_unit": "C",
-                                "timestamp": "2025-11-05T12:00:00Z",
-                                "served_from_cache": False,
-                            },
-                            {
-                                "id": 2,
-                                "city_name": "Minsk",
-                                "temperature": 14.0,
-                                "weather_description": "cloudy",
-                                "temperature_unit": "C",
-                                "timestamp": "2025-11-05T11:30:00Z",
-                                "served_from_cache": True,
-                            },
-                        ],
+                        value={
+                            "count": 25,
+                            "next": "http://api.example.com/weather/history/?page=2",
+                            "previous": None,
+                            "results": [
+                                {
+                                    "id": 1,
+                                    "city_name": "Horad Zhodzina",
+                                    "temperature": 15.5,
+                                    "weather_description": "clear sky",
+                                    "temperature_unit": "C",
+                                    "timestamp": "2025-11-05T12:00:00Z",
+                                    "served_from_cache": False,
+                                },
+                                {
+                                    "id": 2,
+                                    "city_name": "Minsk",
+                                    "temperature": 14.0,
+                                    "weather_description": "cloudy",
+                                    "temperature_unit": "C",
+                                    "timestamp": "2025-11-05T11:30:00Z",
+                                    "served_from_cache": True,
+                                },
+                            ],
+                        },
                     )
                 ],
             )
         },
         summary="Get query history",
-        description="Retrieve a list of all weather queries with their associated weather data.",
+        description=(
+            "Retrieve a paginated list of weather queries with optional filtering.\n\n"
+            "**Filters:**\n"
+            "- `city`: Case-insensitive substring match on city name\n"
+            "- `date_from`: Show queries from this date/time onwards\n"
+            "- `date_to`: Show queries up to this date/time\n\n"
+            "**Examples:**\n"
+            "- `/weather/history/?city=minsk` - All queries for cities containing 'minsk'\n"
+            "- `/weather/history/?date_from=2025-11-01T00:00:00Z&date_to=2025-11-30T23:59:59Z` - Queries in November 2025\n"
+            "- `/weather/history/?city=minsk&page=2&page_size=20` - Second page with 20 results per page"
+        ),
     )
-    def get(self, request: Request) -> Response:
-        """Get all weather queries."""
-        queries = WeatherQuery.objects.select_related("weather_snapshot").all()
-        serializer = WeatherQueryHistorySerializer(queries, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request: Request, *args, **kwargs) -> Response:
+        return super().get(request, *args, **kwargs)
