@@ -1,15 +1,20 @@
 from typing import cast
 
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+)
 from rest_framework import generics, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.pagination import WeatherQueryPagination
-from weather.models import TemperatureChoices, WeatherQuery
 from weather.filters import WeatherQueryFilter
+from weather.models import TemperatureChoices, WeatherQuery
 from weather.serializers import (
     WeatherQueryHistorySerializer,
     WeatherQuerySerializer,
@@ -90,57 +95,47 @@ class WeatherQueryHistoryView(generics.ListAPIView):
     queryset = WeatherQuery.objects.select_related("weather_snapshot").all()
     serializer_class = WeatherQueryHistorySerializer
     filterset_class = WeatherQueryFilter
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     pagination_class = WeatherQueryPagination
-    
+
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name='page',
+                name="page",
                 type=int,
                 location=OpenApiParameter.QUERY,
-                description='Page number',
-                default=1
+                description="Page number",
+                default=1,
             ),
             OpenApiParameter(
-                name='page_size',
+                name="page_size",
                 type=int,
                 location=OpenApiParameter.QUERY,
-                description='Number of results per page (max 100)',
-                default=10
+                description="Number of results per page (max 100)",
+                default=10,
             ),
             OpenApiParameter(
-                name='city',
+                name="city",
                 type=str,
                 location=OpenApiParameter.QUERY,
-                description='Filter by city name (case-insensitive substring match)',
-                required=False
-            ),
-            OpenApiParameter(
-                name='date_from',
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description='Filter queries from this date/time (ISO 8601 format)',
+                description="Filter by city name (case-insensitive substring match)",
                 required=False,
-                examples=[
-                    OpenApiExample(
-                        'Date from example',
-                        value='2025-11-01T00:00:00Z'
-                    )
-                ]
             ),
             OpenApiParameter(
-                name='date_to',
+                name="date_from",
                 type=str,
                 location=OpenApiParameter.QUERY,
-                description='Filter queries up to this date/time (ISO 8601 format)',
+                description="Filter queries from this date/time (ISO 8601 format)",
                 required=False,
-                examples=[
-                    OpenApiExample(
-                        'Date to example',
-                        value='2025-11-30T23:59:59Z'
-                    )
-                ]
+                examples=[OpenApiExample("Date from example", value="2025-11-01T00:00:00Z")],
+            ),
+            OpenApiParameter(
+                name="date_to",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter queries up to this date/time (ISO 8601 format)",
+                required=False,
+                examples=[OpenApiExample("Date to example", value="2025-11-30T23:59:59Z")],
             ),
         ],
         responses={
@@ -188,8 +183,10 @@ class WeatherQueryHistoryView(generics.ListAPIView):
             "- `date_to`: Show queries up to this date/time\n\n"
             "**Examples:**\n"
             "- `/weather/history/?city=minsk` - All queries for cities containing 'minsk'\n"
-            "- `/weather/history/?date_from=2025-11-01T00:00:00Z&date_to=2025-11-30T23:59:59Z` - Queries in November 2025\n"
-            "- `/weather/history/?city=minsk&page=2&page_size=20` - Second page with 20 results per page"
+            "- `/weather/history/?date_from=2025-11-01T00:00:00Z&"
+            "date_to=2025-11-30T23:59:59Z` - Queries in November 2025\n"
+            "- `/weather/history/?city=minsk&page=2&page_size=20`"
+            "- Second page with 20 results per page"
         ),
     )
     def get(self, request: Request, *args, **kwargs) -> Response:

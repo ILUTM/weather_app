@@ -97,26 +97,6 @@ unfixable = [
 known-first-party = ["weather", "core", "config"]
 
 
-[tool.mypy]
-python_version = "3.11"
-plugins = ["mypy_django_plugin.main"]
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-check_untyped_defs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-allow_untyped_decorators = true
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "*.migrations.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "*.tests.*"
-disallow_untyped_defs = false
-
 [tool.django-stubs]
 django_settings_module = "app.settings"
 
