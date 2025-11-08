@@ -1,5 +1,11 @@
 import pytest
+from unittest.mock import patch
+from django.utils import timezone
+
 from cities_light.models import City, Country, Region
+from rest_framework.test import APIClient
+
+from weather.models import TemperatureChoices, WeatherQuery, WeatherSnapshot
 
 
 @pytest.fixture
@@ -90,3 +96,88 @@ def mock_incomplete_api_response():
         "coord": {"lon": -122.4194, "lat": 37.7749},
         "cod": 200,
     }
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture
+def weather_snapshot(db, sample_city):
+    return WeatherSnapshot.objects.create(
+        city_name=sample_city.name,
+        city=sample_city,
+        temperature=20.5,
+        feels_like=19.0,
+        weather_description="clear sky",
+        humidity=65,
+        wind_speed=5.5,
+        pressure=1013,
+        temperature_unit=TemperatureChoices.CELSIUS,
+        raw_response={"test": "data"},
+        fetched_at=timezone.now(),
+    )
+
+
+@pytest.fixture
+def weather_query(db, weather_snapshot):
+    return WeatherQuery.objects.create(
+        weather_snapshot=weather_snapshot,
+        served_from_cache=False,
+        ip_address="192.168.1.1",
+        timestamp=timezone.now(),
+    )
+
+
+@pytest.fixture
+def weather_query_factory(db):
+    def factory(
+        snapshot,
+        served_from_cache=False,
+        ip_address="192.168.1.1",
+        timestamp=None,
+    ):
+        if timestamp is None:
+            timestamp = timezone.now()
+        return WeatherQuery.objects.create(
+            weather_snapshot=snapshot,
+            served_from_cache=served_from_cache,
+            ip_address=ip_address,
+            timestamp=timestamp,
+        )
+    return factory
+
+
+@pytest.fixture
+def mock_weather_service():
+    with patch("weather.views.WeatherService.get_weather_for_city") as mock:
+        yield mock
+
+
+@pytest.fixture
+def weather_snapshot_factory(db):
+    def factory(
+        city,
+        temperature=20.0,
+        feels_like=19.0,
+        weather_description="clear",
+        humidity=65,
+        wind_speed=5.5,
+        pressure=1013,
+        temperature_unit=TemperatureChoices.CELSIUS,
+    ):
+        return WeatherSnapshot.objects.create(
+            city_name=city.name,
+            city=city,
+            temperature=temperature,
+            feels_like=feels_like,
+            weather_description=weather_description,
+            humidity=humidity,
+            wind_speed=wind_speed,
+            pressure=pressure,
+            temperature_unit=temperature_unit,
+            raw_response={"test": "data"},
+            fetched_at=timezone.now(),
+        )
+    return factory
