@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -19,6 +20,7 @@ from weather.serializers import (
     WeatherQuerySerializer,
     WeatherRequestSerializer,
 )
+from weather.services.csv_import_service import CSVExportService
 from weather.services.weather_service import WeatherService
 
 
@@ -183,3 +185,67 @@ class WeatherQueryHistoryView(generics.ListAPIView):
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
         return super().get(request, *args, **kwargs)
+
+
+class WeatherQueryExportView(generics.ListAPIView):
+    queryset = WeatherQuery.objects.select_related("weather_snapshot").all()
+    serializer_class = WeatherQueryHistorySerializer
+    filterset_class = WeatherQueryFilter
+    filter_backends = (DjangoFilterBackend,)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="city",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter by city name (case-insensitive substring match)",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="date_from",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter queries from this date/time (ISO 8601 format)",
+                required=False,
+                examples=[OpenApiExample("Date from example", value="2025-11-01T00:00:00Z")],
+            ),
+            OpenApiParameter(
+                name="date_to",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter queries up to this date/time (ISO 8601 format)",
+                required=False,
+                examples=[OpenApiExample("Date to example", value="2025-11-30T23:59:59Z")],
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description="CSV file with weather query history",
+                examples=[
+                    OpenApiExample(
+                        "CSV Export",
+                        value=(
+                            "Query ID,City Name,Temperature,Temperature Unit,..."
+                            "\n1,Minsk,15.5,C,..."
+                        ),
+                    )
+                ],
+            )
+        },
+        summary="Export query history to CSV",
+        description=(
+            "Export weather queries to CSV file with optional filtering.\n\n"
+            "**Filters:** (same as history endpoint)\n"
+            "- `city`: Case-insensitive substring match on city name\n"
+            "- `date_from`: Show queries from this date/time onwards\n"
+            "- `date_to`: Show queries up to this date/time\n\n"
+            "**Examples:**\n"
+            "- `/weather/export/?city=minsk` - Export all Minsk queries\n"
+            "- `/weather/export/?date_from=2025-11-01T00:00:00Z` - Export November onwards\n\n"
+            "**Note:** Export includes ALL matching records (no pagination)"
+        ),
+    )
+    def get(self, request: Request, *args, **kwargs) -> HttpResponse:
+        queryset = self.filter_queryset(self.get_queryset())
+        return CSVExportService.export_queries_to_csv(queryset)

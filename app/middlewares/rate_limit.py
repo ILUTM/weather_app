@@ -15,7 +15,7 @@ class RateLimitMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path == '/api/weather/fetch/' and request.method == 'POST':
+        if request.path == "/api/weather/fetch/" and request.method == "POST":
             ip_address = get_client_ip(request)
 
             if not self._check_rate_limit(ip_address):
@@ -23,9 +23,9 @@ class RateLimitMiddleware:
                     {
                         "error": "Rate limit exceeded. Please try again later.",
                         "detail": f"Maximum {settings.RATE_LIMIT_PER_MINUTE}"
-                        "requests per minute allowed."
+                        "requests per minute allowed.",
                     },
-                    status=status.HTTP_429_TOO_MANY_REQUESTS
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
                 )
 
         response = self.get_response(request)
@@ -44,21 +44,13 @@ class RateLimitMiddleware:
         current_time = time.time()
 
         if request_data is None:
-            cache.set(
-                cache_key,
-                {"count": 1, "start_time": current_time},
-                settings.RATE_PERIOD
-            )
+            cache.set(cache_key, {"count": 1, "start_time": current_time}, settings.RATE_PERIOD)
             return True
 
         time_passed = current_time - request_data["start_time"]
 
         if time_passed > settings.RATE_PERIOD:
-            cache.set(
-                cache_key,
-                {"count": 1, "start_time": current_time},
-                settings.RATE_PERIOD
-            )
+            cache.set(cache_key, {"count": 1, "start_time": current_time}, settings.RATE_PERIOD)
             return True
 
         if request_data["count"] >= settings.RATE_LIMIT_PER_MINUTE:
