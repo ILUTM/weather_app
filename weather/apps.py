@@ -8,6 +8,6 @@ class WeatherConfig(AppConfig):
     def ready(self) -> None:
         from health_check.plugins import plugin_dir
 
-        from weather.health_checks import WeatherAPIHealthCheck
+        from weather.health_check import WeatherAPIHealthCheck
 
         plugin_dir.register(WeatherAPIHealthCheck)
