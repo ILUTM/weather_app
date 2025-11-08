@@ -16,7 +16,8 @@ WEATHER_API_BASE_URL = os.getenv(
 )
 WEATHER_CACHE_TTL = int(os.getenv("WEATHER_CACHE_TTL", "300"))
 
-RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_REQUESTS", "30"))
+RATE_PERIOD = int(os.getenv("RATE_PERIOD", "60"))
 
 DEBUG = True
 
@@ -46,6 +47,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    'app.middlewares.rate_limit.RateLimitMiddleware',
 ]
 
 ROOT_URLCONF = "app.urls"
