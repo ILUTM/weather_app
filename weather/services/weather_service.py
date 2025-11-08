@@ -1,4 +1,6 @@
+import json
 import logging
+import time
 from typing import cast
 
 import requests
@@ -63,6 +65,7 @@ class WeatherService:
         Returns:
             Dictionary with weather data or None if request fails
         """
+        start_time = time.monotonic()
         try:
             base_url = settings.WEATHER_API_BASE_URL
             units = cls.UNITS_MAP.get(cast(TemperatureChoices, temperature_unit), "standard")
@@ -70,6 +73,12 @@ class WeatherService:
 
             response = requests.get(base_url, params=params, timeout=10)
             response.raise_for_status()
+            logger.info(json.dumps({
+                "event": "external_api_call",
+                "url": base_url,
+                "latency_ms": round((time.monotonic() - start_time) * 1000, 2),
+                "status_code": response.status_code,
+            }))
 
             data = response.json()
 

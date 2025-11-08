@@ -12,7 +12,7 @@ SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY", "")
 WEATHER_API_BASE_URL = os.getenv(
-    "WEATHER_API_BASE_URL", "https://api.openweathermap.org/data/3.0/onecall"
+    "WEATHER_API_BASE_URL", "https://api.openweathermap.org/data/2.5/weather"
 )
 WEATHER_CACHE_TTL = int(os.getenv("WEATHER_CACHE_TTL", "300"))
 
@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "cities_light",
     "weather",
+    "health_check",
+    "health_check.db",
 ]
 
 MIDDLEWARE = [
@@ -48,6 +50,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "app.middlewares.rate_limit.RateLimitMiddleware",
+    "app.middlewares.logging_middleware.LoggingMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -129,6 +132,13 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
+        "json": {
+            "format": (
+                '{"time":"%(asctime)s", "level":"%(levelname)s", '
+                '"logger":"%(name)s", "message":%(message)s}'
+            ),
+            "style": "%",
+        },
         "verbose": {
             "format": "[{asctime}] {levelname} {name} - {message}",
             "style": "{",
@@ -138,7 +148,7 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json",
         },
     },
     "root": {
@@ -146,6 +156,11 @@ LOGGING = {
         "level": "INFO",
     },
     "loggers": {
+        "request_logger": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "cities_light": {
             "handlers": ["console"],
             "propagate": True,

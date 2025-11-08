@@ -5,4 +5,5 @@ urlpatterns = [
     path("api/weather/", include("weather.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("health/", include("health_check.urls")),
 ]
