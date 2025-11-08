@@ -146,6 +146,7 @@ def weather_query_factory(db):
             ip_address=ip_address,
             timestamp=timestamp,
         )
+
     return factory
 
 
@@ -180,4 +181,5 @@ def weather_snapshot_factory(db):
             raw_response={"test": "data"},
             fetched_at=timezone.now(),
         )
+
     return factory

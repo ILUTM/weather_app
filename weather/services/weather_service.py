@@ -73,12 +73,16 @@ class WeatherService:
 
             response = requests.get(base_url, params=params, timeout=10)
             response.raise_for_status()
-            logger.info(json.dumps({
-                "event": "external_api_call",
-                "url": base_url,
-                "latency_ms": round((time.monotonic() - start_time) * 1000, 2),
-                "status_code": response.status_code,
-            }))
+            logger.info(
+                json.dumps(
+                    {
+                        "event": "external_api_call",
+                        "url": base_url,
+                        "latency_ms": round((time.monotonic() - start_time) * 1000, 2),
+                        "status_code": response.status_code,
+                    }
+                )
+            )
 
             data = response.json()
 

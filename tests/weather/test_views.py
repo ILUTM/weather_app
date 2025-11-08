@@ -12,8 +12,9 @@ from weather.models import TemperatureChoices, WeatherQuery
 
 @pytest.mark.django_db
 class TestWeatherView:
-
-    def test_successful_weather_fetch(self, api_client, sample_city, weather_query, mock_weather_service):
+    def test_successful_weather_fetch(
+        self, api_client, sample_city, weather_query, mock_weather_service
+    ):
         mock_weather_service.return_value = (weather_query, None)
 
         url = reverse("weather:fetch-weather")
@@ -24,7 +25,9 @@ class TestWeatherView:
         assert response.data["weather_snapshot"]["city_name"] == sample_city.name
         assert response.data["served_from_cache"] is False
 
-    def test_weather_fetch_with_fahrenheit(self, api_client, sample_city, weather_query, mock_weather_service):
+    def test_weather_fetch_with_fahrenheit(
+        self, api_client, sample_city, weather_query, mock_weather_service
+    ):
         weather_query.weather_snapshot.temperature = 72.5
         weather_query.weather_snapshot.temperature_unit = TemperatureChoices.FAHRENHEIT
         weather_query.weather_snapshot.save()
@@ -80,7 +83,9 @@ class TestWeatherView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_cached_weather_data(self, api_client, sample_city, weather_query, mock_weather_service):
+    def test_cached_weather_data(
+        self, api_client, sample_city, weather_query, mock_weather_service
+    ):
         weather_query.served_from_cache = True
         weather_query.save()
 
@@ -96,7 +101,6 @@ class TestWeatherView:
 
 @pytest.mark.django_db
 class TestWeatherQueryHistoryView:
-
     def test_get_query_history(self, api_client, weather_query):
         url = reverse("weather:query-history")
         response = api_client.get(url)
@@ -123,9 +127,13 @@ class TestWeatherQueryHistoryView:
         assert len(response.data["results"]) == 5
         assert response.data["next"] is not None
 
-    def test_filter_by_city(self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory):
+    def test_filter_by_city(
+        self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory
+    ):
         snapshot1 = weather_snapshot_factory(city=sample_city)
-        snapshot2 = weather_snapshot_factory(city=another_city, temperature=25.0, weather_description="sunny")
+        snapshot2 = weather_snapshot_factory(
+            city=another_city, temperature=25.0, weather_description="sunny"
+        )
 
         weather_query_factory(snapshot=snapshot1, ip_address="192.168.1.1")
         weather_query_factory(snapshot=snapshot2, ip_address="192.168.1.2")
@@ -137,7 +145,9 @@ class TestWeatherQueryHistoryView:
         assert response.data["count"] == 1
         assert response.data["results"][0]["city_name"] == sample_city.name
 
-    def test_filter_by_city_case_insensitive(self, api_client, sample_city, weather_snapshot_factory, weather_query_factory):
+    def test_filter_by_city_case_insensitive(
+        self, api_client, sample_city, weather_snapshot_factory, weather_query_factory
+    ):
         snapshot = weather_snapshot_factory(city=sample_city)
         weather_query_factory(snapshot=snapshot, ip_address="192.168.1.1")
 
@@ -152,8 +162,12 @@ class TestWeatherQueryHistoryView:
         yesterday = now - timedelta(days=1)
         two_days_ago = now - timedelta(days=2)
 
-        weather_query_factory(snapshot=weather_snapshot, ip_address="192.168.1.1", timestamp=two_days_ago)
-        weather_query_factory(snapshot=weather_snapshot, ip_address="192.168.1.2", timestamp=yesterday)
+        weather_query_factory(
+            snapshot=weather_snapshot, ip_address="192.168.1.1", timestamp=two_days_ago
+        )
+        weather_query_factory(
+            snapshot=weather_snapshot, ip_address="192.168.1.2", timestamp=yesterday
+        )
         weather_query_factory(snapshot=weather_snapshot, ip_address="192.168.1.3", timestamp=now)
 
         url = reverse("weather:query-history")
@@ -168,12 +182,16 @@ class TestWeatherQueryHistoryView:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 2
 
-    def test_combined_filters(self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory):
+    def test_combined_filters(
+        self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory
+    ):
         now = timezone.now()
         yesterday = now - timedelta(days=1)
 
         snapshot1 = weather_snapshot_factory(city=sample_city)
-        snapshot2 = weather_snapshot_factory(city=another_city, temperature=25.0, weather_description="sunny")
+        snapshot2 = weather_snapshot_factory(
+            city=another_city, temperature=25.0, weather_description="sunny"
+        )
 
         weather_query_factory(snapshot=snapshot1, ip_address="192.168.1.1", timestamp=yesterday)
         weather_query_factory(snapshot=snapshot1, ip_address="192.168.1.2", timestamp=now)
@@ -240,7 +258,9 @@ class TestWeatherQueryExportView:
         assert rows[0][0] == "Query ID"
         assert rows[0][1] == "City Name"
 
-    def test_export_csv_with_multiple_queries(self, api_client, weather_snapshot, weather_query_factory):
+    def test_export_csv_with_multiple_queries(
+        self, api_client, weather_snapshot, weather_query_factory
+    ):
         for i in range(5):
             weather_query_factory(
                 snapshot=weather_snapshot,
@@ -280,9 +300,13 @@ class TestWeatherQueryExportView:
         assert data_row[3] == weather_snapshot.temperature_unit
         assert data_row[9] == "Yes"
 
-    def test_export_csv_filter_by_city(self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory):
+    def test_export_csv_filter_by_city(
+        self, api_client, sample_city, another_city, weather_snapshot_factory, weather_query_factory
+    ):
         snapshot1 = weather_snapshot_factory(city=sample_city)
-        snapshot2 = weather_snapshot_factory(city=another_city, temperature=25.0, weather_description="sunny")
+        snapshot2 = weather_snapshot_factory(
+            city=another_city, temperature=25.0, weather_description="sunny"
+        )
 
         weather_query_factory(snapshot=snapshot1, ip_address="192.168.1.1")
         weather_query_factory(snapshot=snapshot2, ip_address="192.168.1.2")
@@ -311,8 +335,12 @@ class TestWeatherQueryExportView:
         assert len(rows) == 151
 
     def test_export_csv_cache_indicator(self, api_client, weather_snapshot, weather_query_factory):
-        weather_query_factory(snapshot=weather_snapshot, served_from_cache=True, ip_address="192.168.1.1")
-        weather_query_factory(snapshot=weather_snapshot, served_from_cache=False, ip_address="192.168.1.2")
+        weather_query_factory(
+            snapshot=weather_snapshot, served_from_cache=True, ip_address="192.168.1.1"
+        )
+        weather_query_factory(
+            snapshot=weather_snapshot, served_from_cache=False, ip_address="192.168.1.2"
+        )
 
         url = reverse("weather:weather-export")
         response = api_client.get(url)

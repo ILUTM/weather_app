@@ -20,7 +20,7 @@ from weather.serializers import (
     WeatherQuerySerializer,
     WeatherRequestSerializer,
 )
-from weather.services.csv_import_service import CSVExportService
+from weather.services.csv_export_service import CSVExportService
 from weather.services.weather_service import WeatherService
 
 

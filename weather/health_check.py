@@ -27,9 +27,7 @@ class WeatherAPIHealthCheck(BaseHealthCheckBackend):
             logger.info("Weather API health check passed")
         except requests.RequestException as e:
             logger.error(f"Weather API health check failed: {e}")
-            raise ServiceUnavailable(
-                f"Weather API unreachable: {str(e)}"
-            ) from e
+            raise ServiceUnavailable(f"Weather API unreachable: {str(e)}") from e
 
     def identifier(self) -> str:
         return "weather_api"
