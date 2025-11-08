@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.utils import timezone
 
 from cities_light.models import City, Country, Region
+from django.test import RequestFactory
 from rest_framework.test import APIClient
 
 from weather.models import TemperatureChoices, WeatherQuery, WeatherSnapshot
@@ -183,3 +184,13 @@ def weather_snapshot_factory(db):
         )
 
     return factory
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture
+def rf():
+    return RequestFactory()
