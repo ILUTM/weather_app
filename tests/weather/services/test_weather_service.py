@@ -40,6 +40,7 @@ class TestFetchWeatherData:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         result = WeatherService.fetch_weather_data(
@@ -78,6 +79,7 @@ class TestFetchWeatherData:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         result = WeatherService.fetch_weather_data(
@@ -104,6 +106,7 @@ class TestFetchWeatherData:
         mock_response = Mock()
         mock_response.json.return_value = mock_incomplete_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         result = WeatherService.fetch_weather_data(
@@ -116,6 +119,7 @@ class TestFetchWeatherData:
     def test_fetch_weather_data_http_error(self, mock_get):
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
+        mock_response.status_code = 404
         mock_get.return_value = mock_response
 
         result = WeatherService.fetch_weather_data(
@@ -299,6 +303,7 @@ class TestGetWeatherForCity:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         query, error = WeatherService.get_weather_for_city(
@@ -325,6 +330,7 @@ class TestGetWeatherForCity:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         query1, error1 = WeatherService.get_weather_for_city(
@@ -385,6 +391,7 @@ class TestGetWeatherForCity:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200 
         mock_get.return_value = mock_response
 
         query, error = WeatherService.get_weather_for_city(
@@ -406,6 +413,7 @@ class TestGetWeatherForCity:
         mock_response = Mock()
         mock_response.json.return_value = mock_weather_api_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200 
         mock_get.return_value = mock_response
 
         query1, _ = WeatherService.get_weather_for_city(
@@ -448,6 +456,7 @@ class TestEdgeCases:
         mock_response = Mock()
         mock_response.json.return_value = minimal_response
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
         mock_get.return_value = mock_response
 
         result = WeatherService.fetch_weather_data(
