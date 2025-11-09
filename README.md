@@ -47,6 +47,32 @@ RATE_PERIOD=60
 
 **Note:** Get your OpenWeatherMap API key at [openweathermap.org/api](https://openweathermap.org/api)
 
+### Supported Countries Configuration
+
+The application uses `django-cities-light` to provide city data. **By default, only US and BY (Belarus) cities are included.**
+
+To add support for weather queries in additional countries:
+
+1. **Update the `.env` file:**
+```env
+   CITIES_LIGHT_COUNTRIES=US,BY,GB,FR,DE  
+```
+   
+   Use [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes (e.g., `GB` for United Kingdom, `FR` for France, `DE` for Germany).
+
+2. **Reload city data:**
+```bash
+   docker exec -it weather-app poetry run python manage.py cities_light --force-all
+```
+
+3. **Restart the application:**
+```bash
+   docker compose -f docker-compose.yml restart
+```
+
+**Note:** Adding many countries will increase the database size and initial load time. The city database contains only cities with population data (types: PPL, PPLA, PPLA2, PPLA3, PPLA4, PPLC).
+
+
 ### Running the Services
 
 1.  Clone the repository:
