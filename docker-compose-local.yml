@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  weather-app:
+    container_name: weather-app
+    hostname: weather-app
+    image: weather-app
+    build: 
+        context: .
+        dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    links:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  db:
+    image: postgres:15-alpine
+    container_name: weather_app_db
+    hostname: weather_app_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_NAME=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+volumes:
+  postgres_data:
