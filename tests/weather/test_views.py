@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from weather.models import TemperatureChoices, WeatherQuery
+from weather.models import TemperatureChoices
 
 
 @pytest.mark.django_db

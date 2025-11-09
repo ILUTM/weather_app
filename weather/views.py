@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.views.generic import TemplateView
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -249,3 +250,11 @@ class WeatherQueryExportView(generics.ListAPIView):
     def get(self, request: Request, *args, **kwargs) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
         return CSVExportService.export_queries_to_csv(queryset)
+
+
+class WeatherPageView(TemplateView):
+    template_name = "weather/fetch.html"
+
+
+class HistoryPageView(TemplateView):
+    template_name = "weather/history.html"

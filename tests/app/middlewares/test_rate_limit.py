@@ -1,15 +1,11 @@
-import pytest
 import time
-from django.core.cache import cache
-from django.http import JsonResponse
-from django.conf import settings
 
-from app.middlewares.rate_limit import RateLimitMiddleware
+import pytest
+from django.conf import settings
 
 
 @pytest.mark.django_db
 class TestRateLimitMiddleware:
-
     def make_request(self, rf, path="/api/weather/fetch/", method="post", ip="192.168.1.1"):
         req = getattr(rf, method.lower())(path)
         req.META["REMOTE_ADDR"] = ip

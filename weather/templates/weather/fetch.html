@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Fetch Weather{% endblock %}
+
+{% block content %}
+<div class="weather-fetch">
+    <h2>Get Current Weather</h2>
+    
+    <form id="weather-form">
+        <div class="form-group">
+            <label for="city_name">City Name:</label>
+            <input 
+                type="text" 
+                id="city_name" 
+                name="city_name" 
+                placeholder="e.g., London, New York" 
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Temperature Unit:</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="temperature_unit" value="C" checked>
+                    Celsius
+                </label>
+                <label>
+                    <input type="radio" name="temperature_unit" value="F">
+                    Fahrenheit
+                </label>
+                <label>
+                    <input type="radio" name="temperature_unit" value="K">
+                    Kelvin
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Get Weather</button>
+    </form>
+
+    <div id="loading" class="loading" style="display: none;">
+        Loading...
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="weather-result" class="weather-result" style="display: none;">
+        <h3>Weather in <span id="result-city"></span></h3>
+        
+        <div class="weather-card">
+            <div class="weather-main">
+                <div class="temperature">
+                    <span id="result-temp" class="temp-value"></span>
+                    <span id="result-unit" class="temp-unit"></span>
+                </div>
+                <p id="result-description" class="description"></p>
+            </div>
+
+            <div class="weather-details">
+                <div class="detail-item">
+                    <span class="label">Feels Like:</span>
+                    <span id="result-feels-like"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Humidity:</span>
+                    <span id="result-humidity"></span>%
+                </div>
+                <div class="detail-item">
+                    <span class="label">Wind Speed:</span>
+                    <span id="result-wind"></span> m/s
+                </div>
+                <div class="detail-item">
+                    <span class="label">Pressure:</span>
+                    <span id="result-pressure"></span> hPa
+                </div>
+            </div>
+
+            <div id="cache-badge" class="cache-badge" style="display: none;">
+                ⚡ Served from cache
+            </div>
+
+            <p class="timestamp">
+                Fetched at: <span id="result-time"></span>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('weather-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const cityName = document.getElementById('city_name').value.trim();
+    const temperatureUnit = document.querySelector('input[name="temperature_unit"]:checked').value;
+
+    document.getElementById('weather-result').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
+    
+    try {
+        const response = await fetch('{% url "weather:fetch-weather" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                city_name: cityName,
+                temperature_unit: temperatureUnit
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch weather');
+        }
+
+        displayWeather(data);
+        
+    } catch (error) {
+        document.getElementById('error').textContent = error.message;
+        document.getElementById('error').style.display = 'block';
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+});
+
+function displayWeather(data) {
+    const snapshot = data.weather_snapshot;
+    
+    document.getElementById('result-city').textContent = snapshot.city_name;
+    document.getElementById('result-temp').textContent = snapshot.temperature.toFixed(1);
+    document.getElementById('result-unit').textContent = '°' + snapshot.temperature_unit;
+    document.getElementById('result-description').textContent = snapshot.weather_description;
+    document.getElementById('result-feels-like').textContent = 
+    snapshot.feels_like ? snapshot.feels_like.toFixed(1) + '°' + snapshot.temperature_unit : 'N/A';
+    document.getElementById('result-humidity').textContent = snapshot.humidity || 'N/A';
+    document.getElementById('result-wind').textContent = snapshot.wind_speed || 'N/A';
+    document.getElementById('result-pressure').textContent = snapshot.pressure || 'N/A';
+    document.getElementById('result-time').textContent = new Date(snapshot.fetched_at).toLocaleString();
+
+    const cacheBadge = document.getElementById('cache-badge');
+    if (data.served_from_cache) {
+        cacheBadge.style.display = 'block';
+    } else {
+        cacheBadge.style.display = 'none';
+    }
+    
+    document.getElementById('weather-result').style.display = 'block';
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
