@@ -148,7 +148,6 @@ http://localhost:8000/health/
 - `GET /api/weather/current/` - Get current weather for a city
 - `GET /api/weather/history/` - View weather query history
 - `GET /api/weather/export/` - Export history as CSV
-- `GET /api/cities/` - Search cities
 
 ## Test
 
